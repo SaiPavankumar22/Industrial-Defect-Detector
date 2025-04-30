@@ -13,9 +13,13 @@ import tempfile
 import uuid
 import time
 from flask_session import Session
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app)
+
+# Load environment variables
+load_dotenv()
 
 # Session configuration
 app.config['SECRET_KEY'] = 'sai_22'
