@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Detection - Caterpillar Defect Detector</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --cat-yellow: #FFCD00;
+            --cat-blue: #002D72;
+            --cat-black: #000000;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .navbar {
+            background-color: var(--cat-blue);
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .logo-icon {
+            color: var(--cat-yellow);
+            margin-right: 0.5rem;
+        }
+
+        .upload-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--cat-yellow);
+            background-color: #fff9e6;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--cat-blue);
+            margin-bottom: 1rem;
+        }
+
+        .frames-container {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .frame-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .frame-item {
+            position: relative;
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .frame-item:hover {
+            border-color: var(--cat-yellow);
+            transform: translateY(-2px);
+        }
+
+        .frame-item.selected {
+            border-color: var(--cat-yellow);
+            box-shadow: 0 0 0 2px var(--cat-yellow);
+        }
+
+        .frame-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .frame-timestamp {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.25rem;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .model-selector {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .model-option {
+            border: 2px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .model-option:hover {
+            border-color: var(--cat-yellow);
+            background-color: #fff9e6;
+        }
+
+        .model-option.selected {
+            border-color: var(--cat-yellow);
+            background-color: #fff9e6;
+        }
+
+        .btn-cat {
+            background-color: var(--cat-yellow);
+            color: var(--cat-black);
+            font-weight: bold;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cat:hover {
+            background-color: #FFD633;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-cat:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .footer {
+            background-color: var(--cat-blue);
+            color: white;
+            padding: 1.5rem 0;
+            margin-top: 4rem;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            text-align: center;
+        }
+
+        .spinner-icon {
+            color: var(--cat-blue);
+            font-size: 3rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results Section Styles */
+        .results-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+            overflow: hidden;
+            display: none;
+        }
+
+        .results-header {
+            background-color: var(--cat-blue);
+            color: white;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .results-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--cat-yellow);
+        }
+
+        .results-body {
+            padding: 2rem;
+        }
+
+        .defect-info {
+            background-color: #fff9e6;
+            border-left: 4px solid var(--cat-yellow);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .image-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .image-card {
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .image-card-header {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .result-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.25rem;
+        }
+
+        .error-details {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #fff3f3;
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-exclamation-triangle logo-icon"></i>
+                Caterpillar Defect Detector
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Upload Section -->
+        <div class="upload-container" id="uploadSection">
+            <h2 class="text-center mb-4" style="color: var(--cat-blue);">Video Defect Detection</h2>
+            
+            <form id="uploadForm">
+                <div class="upload-area" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <p class="mb-2">Drag and drop your video here or click to browse</p>
+                    <p class="text-muted small">Supported formats: MP4, AVI, MOV</p>
+                    <input type="file" id="videoInput" accept="video/*" class="d-none">
+                    <div id="videoPreview" class="text-center"></div>
+                </div>
+
+                <div class="frames-container" id="framesContainer">
+                    <h4 class="mb-3">Select a Frame for Analysis</h4>
+                    <div class="frame-grid" id="frameGrid"></div>
+                </div>
+
+                <div class="model-selector" id="modelSelector">
+                    <h4 class="mb-3">Select Detection Model</h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="model-option" data-model="gap-measurement">
+                                <h5>Gap Measurement</h5>
+                                <p class="mb-0 text-muted">Analyzes spacing between components</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="model-option" data-model="weld-defect">
+                                <h5>Weld Defect</h5>
+                                <p class="mb-0 text-muted">Detects issues in welding quality</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="model-option" data-model="paint-aesthetics">
+                                <h5>Paint Aesthetics</h5>
+                                <p class="mb-0 text-muted">Evaluates paint finish quality</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="button" id="processBtn" class="btn btn-cat" style="display: none;">
+                        Process Video
+                    </button>
+                    <button type="submit" class="btn btn-cat" disabled id="analyzeBtn" style="display: none;">
+                        Analyze Selected Frame
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-container" id="resultsSection" style="display: none;">
+            <div class="results-header">
+                <h2>Prediction Results</h2>
+            </div>
+            <div class="results-body">
+                <div id="errorDisplay" class="alert alert-danger" role="alert" style="display: none;">
+                    <div class="error-details">
+                        <small>Error Details:</small>
+                        <ul id="errorList"></ul>
+                    </div>
+                </div>
+
+                <div class="image-comparison">
+                    <div class="image-card">
+                        <div class="image-card-header">
+                            <h4>Original Frame</h4>
+                        </div>
+                        <div class="image-container">
+                            <img id="originalImage" class="result-image" alt="Original Frame" 
+                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'alert alert-warning\'>Failed to load image</div>';">
+                        </div>
+                    </div>
+                    <div class="image-card">
+                        <div class="image-card-header">
+                            <h4>Processed Frame</h4>
+                        </div>
+                        <div class="image-container">
+                            <img id="resultImage" class="result-image" alt="Processed Frame" 
+                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'alert alert-warning\'>Failed to load image</div>';">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="defect-info">
+                            <h4>Detected Defects</h4>
+                            <p class="lead" id="defectText"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="defect-info">
+                            <h4>Explanation</h4>
+                            <p id="reasonText"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button class="btn btn-cat" onclick="resetForm()">
+                        <i class="fas fa-redo me-2"></i>New Detection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner spinner-icon"></i>
+            <p class="mt-3" id="loadingText">Processing video...</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2024 Caterpillar Inc. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropZone = document.getElementById('dropZone');
+            const videoInput = document.getElementById('videoInput');
+            const videoPreview = document.getElementById('videoPreview');
+            const framesContainer = document.getElementById('framesContainer');
+            const frameGrid = document.getElementById('frameGrid');
+            const modelSelector = document.getElementById('modelSelector');
+            const processBtn = document.getElementById('processBtn');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const uploadForm = document.getElementById('uploadForm');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            const resultsSection = document.getElementById('resultsSection');
+            const uploadSection = document.getElementById('uploadSection');
+
+            let selectedVideo = null;
+            let selectedFrame = null;
+            let selectedModel = null;
+
+            // Handle drag and drop
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--cat-yellow)';
+                dropZone.style.backgroundColor = '#fff9e6';
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#dee2e6';
+                dropZone.style.backgroundColor = 'white';
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#dee2e6';
+                dropZone.style.backgroundColor = 'white';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleVideo(files[0]);
+                }
+            });
+
+            // Handle click to upload
+            dropZone.addEventListener('click', () => {
+                videoInput.click();
+            });
+
+            videoInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleVideo(e.target.files[0]);
+                }
+            });
+
+            function handleVideo(file) {
+                if (!file.type.startsWith('video/')) {
+                    alert('Please upload a video file');
+                    return;
+                }
+
+                selectedVideo = file;
+                videoPreview.innerHTML = `
+                    <div class="mt-3">
+                        <i class="fas fa-video" style="color: var(--cat-blue);"></i>
+                        <span class="ms-2">${file.name}</span>
+                        <button type="button" class="btn btn-link text-danger" onclick="removeVideo()">Remove</button>
+                    </div>
+                `;
+                processBtn.style.display = 'inline-block';
+            }
+
+            function removeVideo() {
+                videoPreview.innerHTML = '';
+                selectedVideo = null;
+                videoInput.value = '';
+                processBtn.style.display = 'none';
+                framesContainer.style.display = 'none';
+                modelSelector.style.display = 'none';
+                analyzeBtn.style.display = 'none';
+            }
+
+            // Process video button click
+            processBtn.addEventListener('click', async () => {
+                if (!selectedVideo) return;
+
+                loadingOverlay.style.display = 'flex';
+                loadingText.textContent = 'Processing video...';
+
+                const formData = new FormData();
+                formData.append('video', selectedVideo);
+
+                try {
+                    const response = await fetch('/video_process', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const data = await response.json();
+                    displayFrames(data.frames);
+                
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing the video. Please try again.');
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                }
+            });
+
+            function displayFrames(frames) {
+                frameGrid.innerHTML = '';
+                frames.forEach(frame => {
+                    const frameElement = document.createElement('div');
+                    frameElement.className = 'frame-item';
+                    frameElement.innerHTML = `
+                        <img src="${frame.src}" alt="Frame ${frame.id}">
+                        <div class="frame-timestamp">${frame.timestamp}</div>
+                    `;
+                    frameElement.addEventListener('click', () => selectFrame(frame, frameElement));
+                    frameGrid.appendChild(frameElement);
+                });
+
+                framesContainer.style.display = 'block';
+                modelSelector.style.display = 'block';
+                analyzeBtn.style.display = 'inline-block';
+            }
+
+            function selectFrame(frame, element) {
+                document.querySelectorAll('.frame-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                element.classList.add('selected');
+                selectedFrame = frame;
+                updateAnalyzeButton();
+            }
+
+            // Handle model selection
+            document.querySelectorAll('.model-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.model-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    option.classList.add('selected');
+                    selectedModel = option.dataset.model;
+                    updateAnalyzeButton();
+                });
+            });
+
+            function updateAnalyzeButton() {
+                analyzeBtn.disabled = !(selectedFrame && selectedModel);
+            }
+
+            uploadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (!selectedFrame || !selectedModel) return;
+
+                loadingOverlay.style.display = 'flex';
+                loadingText.textContent = 'Analyzing frame...';
+
+                try {
+                    // Convert the frame's data URL to a Blob
+                    const response = await fetch(selectedFrame.src);
+                    const blob = await response.blob();
+                    
+                    const formData = new FormData();
+                    formData.append('image', blob, 'frame.jpg');
+                    formData.append('model_type', selectedModel);
+
+                    const predictResponse = await fetch('/predict', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!predictResponse.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const result = await predictResponse.json();
+                    
+                    // Show results section and hide upload section
+                    resultsSection.style.display = 'block';
+                    uploadSection.style.display = 'none';
+                    
+                    // Update results
+                    document.getElementById('originalImage').src = result.original_image;
+                    document.getElementById('resultImage').src = result.image;
+                    document.getElementById('defectText').textContent = result.defect || 'No defects detected';
+                    document.getElementById('reasonText').textContent = result.reason || 'No analysis available';
+                    
+                    // Scroll to results
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred during analysis. Please try again.');
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                }
+            });
+
+            function resetForm() {
+                // Reset video input
+                videoInput.value = '';
+                selectedVideo = null;
+                
+                // Reset frame selection
+                selectedFrame = null;
+                frameGrid.innerHTML = '';
+                framesContainer.style.display = 'none';
+                
+                // Reset model selection
+                document.querySelectorAll('.model-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                selectedModel = null;
+                modelSelector.style.display = 'none';
+                
+                // Clear video preview
+                videoPreview.innerHTML = '';
+                
+                // Reset buttons
+                processBtn.style.display = 'none';
+                analyzeBtn.style.display = 'none';
+                analyzeBtn.disabled = true;
+                
+                // Show upload section and hide results
+                uploadSection.style.display = 'block';
+                resultsSection.style.display = 'none';
+                
+                // Reset form
+                uploadForm.reset();
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // Make removeVideo function globally available
+            window.removeVideo = removeVideo;
+        });
+    </script>
+</body>
+</html>

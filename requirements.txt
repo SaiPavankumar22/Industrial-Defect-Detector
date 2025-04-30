@@ -1,0 +1,9 @@
+flask==3.0.2
+flask-cors==4.0.0
+flask-session==0.5.0
+opencv-python==4.9.0.80
+numpy==1.26.4
+ultralytics==8.1.28
+supervision==0.18.0
+requests==2.31.0
+python-dotenv==1.0.1 

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caterpillar Defect Detector</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cat-yellow: #FFCD00;
+            --cat-blue: #002D72;
+            --cat-black: #000000;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .navbar {
+            background-color: var(--cat-blue);
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .logo-icon {
+            color: var(--cat-yellow);
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .hero-section {
+            padding: 4rem 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .detection-card {
+            border: none;
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .detection-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            background-color: var(--cat-blue);
+            color: white;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background-color: var(--cat-yellow);
+            opacity: 0.1;
+            top: -50%;
+            left: -50%;
+            transform: rotate(45deg);
+            transition: transform 0.6s ease;
+        }
+
+        .detection-card:hover .card-header::after {
+            transform: rotate(45deg) translate(10%, 10%);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--cat-yellow);
+            margin-bottom: 1rem;
+        }
+
+        .btn-cat {
+            background-color: var(--cat-yellow);
+            color: var(--cat-black);
+            font-weight: bold;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-cat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-color: #FFD633;
+        }
+
+        .footer {
+            background-color: var(--cat-blue);
+            color: white;
+            padding: 1.5rem 0;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-exclamation-triangle logo-icon"></i>
+                Caterpillar Defect Detector
+            </a>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 mb-4" style="color: var(--cat-blue);">Industrial Defect Detection</h1>
+            <p class="lead mb-5">Advanced AI-powered quality control for manufacturing excellence</p>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-4 mb-4">
+                    <div class="card detection-card" onclick="window.location.href='/image'">
+                        <div class="card-header text-center">
+                            <i class="fas fa-image feature-icon"></i>
+                            <h3>Image Detection</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Upload and analyze individual images for precise defect detection</p>
+                            <button class="btn btn-cat w-100">Start Image Analysis</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                    <div class="card detection-card" onclick="window.location.href='/video'">
+                        <div class="card-header text-center">
+                            <i class="fas fa-video feature-icon"></i>
+                            <h3>Video Detection</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Process video footage for comprehensive defect analysis</p>
+                            <button class="btn btn-cat w-100">Start Video Analysis</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container my-5">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="fas fa-shield-alt feature-icon"></i>
+                    <h3>Quality Assurance</h3>
+                    <p>Advanced detection algorithms for superior quality control</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="fas fa-bolt feature-icon"></i>
+                    <h3>Real-time Analysis</h3>
+                    <p>Instant feedback on manufacturing defects</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="fas fa-tachometer-alt feature-icon"></i>
+                    <h3>Rapid Processing</h3>
+                    <p>Fast and efficient detection algorithms</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2024 Caterpillar Inc. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js"></script>
+</body>
+</html>
